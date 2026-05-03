@@ -128,3 +128,44 @@ class TestOperatorAdd(unittest.TestCase):
         self.assertTrue(numpy.allclose(op1.data, d1))
         self.assertTrue(numpy.allclose(op2.data, d2))
         self.assertTrue(numpy.allclose(result.data, 6.0 * numpy.eye(2)))
+
+
+class TestMatrixDataEq(unittest.TestCase):
+    """Tests for __eq__ on MatrixData and its subclasses (Operator, etc.)."""
+
+    def test_equal_operators_compare_equal(self):
+        """Two Operators with identical data must compare equal."""
+        op1 = Operator(data=numpy.array([[1.0, 2.0], [3.0, 4.0]]))
+        op2 = Operator(data=numpy.array([[1.0, 2.0], [3.0, 4.0]]))
+        self.assertEqual(op1, op2)
+
+    def test_different_operators_compare_unequal(self):
+        """Two Operators with different data must compare unequal."""
+        op1 = Operator(data=numpy.array([[1.0, 0.0], [0.0, 1.0]]))
+        op2 = Operator(data=numpy.array([[2.0, 0.0], [0.0, 2.0]]))
+        self.assertNotEqual(op1, op2)
+
+    def test_numerically_close_operators_compare_equal(self):
+        """Operators that differ by floating-point noise must compare equal."""
+        data = numpy.array([[1.0, 2.0], [3.0, 4.0]])
+        op1 = Operator(data=data)
+        op2 = Operator(data=data + 1e-12)
+        self.assertEqual(op1, op2)
+
+    def test_different_shape_operators_compare_unequal(self):
+        """Operators with different shapes must compare unequal."""
+        op1 = Operator(data=numpy.eye(2))
+        op2 = Operator(data=numpy.eye(3))
+        self.assertNotEqual(op1, op2)
+
+    def test_eq_with_non_operator_returns_not_implemented(self):
+        """Comparing an Operator to a non-Operator must not raise."""
+        op = Operator(data=numpy.eye(2))
+        result = op.__eq__(42)
+        self.assertIs(result, NotImplemented)
+
+    def test_operator_is_unhashable(self):
+        """Operator must be unhashable (mutable objects with __eq__ should not be hashable)."""
+        op = Operator(data=numpy.eye(2))
+        with self.assertRaises(TypeError):
+            hash(op)

@@ -42,6 +42,15 @@ class MatrixData:
             else:
                 self.data = data
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        if self.data.shape != other.data.shape:
+            return False
+        return bool(numpy.allclose(self.data, other.data))
+
+    __hash__ = None  # type: ignore[assignment]
+
     def set_name(self, name: str) -> None:
         """Sets the object name
 
