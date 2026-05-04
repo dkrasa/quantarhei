@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "quantarhei"
 version = "0.0.69"
 description = "Quantarhei: Open Quantum System Theory for Molecular Systems"
-readme = "README.rst"
+readme = "README.md"
 license = { text = "MIT" }
 authors = [
   { name = "Tomas Mancal", email = "mancal@karlov.mff.cuni.cz" }
