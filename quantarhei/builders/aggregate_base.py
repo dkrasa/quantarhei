@@ -499,17 +499,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 else:
                     Ns = len(elst1)
                     sites = [0, 0]
-                    k = 0
+                    n_diff = 0
                     # count differences
                     for i in range(Ns):
                         if elst1[i] != elst2[i]:
-                            if (k == 0) or (k == 1):
-                                sites[k] = i
-                            k += 1
+                            if (n_diff == 0) or (n_diff == 1):
+                                sites[n_diff] = i
+                            n_diff += 1
                     # if there are exactly 2 differences, the differing
-                    # two molecules are those coupled; sites[k] contains
+                    # two molecules are those coupled; sites[n_diff] contains
                     # indiced those coupled molecules
-                    if k == 2:
+                    if n_diff == 2:
                         mon1 = sites[0]
                         mon2 = sites[1]
 
@@ -719,8 +719,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         mmin = None
         for m in self.monomers:
             r2 = m.position
-            r = r1 - r2
-            dist = numpy.sqrt(numpy.dot(r, r))
+            r_vec = r1 - r2
+            dist = numpy.sqrt(numpy.dot(r_vec, r_vec))
             if (dist > tol) and (dist < rmin):
                 mmin = m
                 rmin = dist
@@ -1231,12 +1231,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return -1
 
         # count the number of differences
-        l = 0
+        sig_idx = 0
         count = 0
         for kk in els1:
-            if kk != els2[l]:
+            if kk != els2[sig_idx]:
                 count += 1
-            l += 1
+            sig_idx += 1
 
         if count != 2:
             return -1
@@ -1245,16 +1245,16 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # us find on which molecule they are
         exstates = []
         exindxs = []
-        l = -1
+        sig_idx = -1
         for kk in els1:  # signature is just a tuple; iterate over it
-            l += 1
-            if kk != els2[l]:  # this is the index where they differ
+            sig_idx += 1
+            if kk != els2[sig_idx]:  # this is the index where they differ
                 # which of them is excited
-                if kk > els2[l]:
+                if kk > els2[sig_idx]:
                     exstates.append(els1)
                 else:
                     exstates.append(els2)
-                exindxs.append(l)
+                exindxs.append(sig_idx)
 
         if len(exstates) == 0:
             raise Exception()
@@ -1286,12 +1286,12 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # -----------------------------------------------------------------
 
         # count the number of differences
-        l = 0
+        sig_idx = 0
         count = 0
         for kk in els1:
-            if kk != els2[l]:
+            if kk != els2[sig_idx]:
                 count += 1
-            l += 1
+            sig_idx += 1
 
         if count != 1:
             return -1
@@ -1299,16 +1299,16 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # now that we know that the states differ by one excitation, let
         # us find on which molecule it is
         exstate = None
-        l = -1
+        sig_idx = -1
         for kk in els1:  # signature is just a tuple; iterate over it
-            l += 1
-            if kk != els2[l]:  # this is the index where they differ
+            sig_idx += 1
+            if kk != els2[sig_idx]:  # this is the index where they differ
                 # which of them is excited
-                if kk > els2[l]:
+                if kk > els2[sig_idx]:
                     exstate = els1
                 else:
                     exstate = els2
-                exindx = l
+                exindx = sig_idx
 
         if exstate is None:
             raise Exception()
@@ -1470,17 +1470,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     else:
                         Ns = len(els1)
                         sites = [0, 0]
-                        k = 0
+                        n_diff = 0
                         # count differences
                         for i in range(Ns):
                             if els1[i] != els2[i]:
-                                if (k == 0) or (k == 1):
-                                    sites[k] = i
-                                k += 1
+                                if (n_diff == 0) or (n_diff == 1):
+                                    sites[n_diff] = i
+                                n_diff += 1
                         # if there are exactly 2 differences, the differing
-                        # two molecules are those coupled; sites[k] contains
+                        # two molecules are those coupled; sites[n_diff] contains
                         # indiced those coupled molecules
-                        if k == 2:
+                        if n_diff == 2:
                             mon1 = sites[0]
                             mon2 = sites[1]
 
@@ -1538,17 +1538,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     else:
                         Ns = len(els1)
                         sites = [0, 0]
-                        k = 0
+                        n_diff = 0
                         # count differences
                         for i in range(Ns):
                             if els1[i] != els2[i]:
-                                if (k == 0) or (k == 1):
-                                    sites[k] = i
-                                k += 1
+                                if (n_diff == 0) or (n_diff == 1):
+                                    sites[n_diff] = i
+                                n_diff += 1
                         # if there are exactly 2 differences, the differing
-                        # two molecules are those coupled; sites[k] contains
+                        # two molecules are those coupled; sites[n_diff] contains
                         # indiced those coupled molecules
-                        if k == 2:
+                        if n_diff == 2:
                             mon1 = sites[0]
                             mon2 = sites[1]
 
@@ -1607,17 +1607,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         els2 = state2.elsignature
                         Ns = len(els1)
                         sites = [0, 0]
-                        k = 0
+                        n_diff = 0
                         # count differences
                         for i in range(Ns):
                             if els1[i] != els2[i]:
-                                if (k == 0) or (k == 1):
-                                    sites[k] = i
-                                k += 1
+                                if (n_diff == 0) or (n_diff == 1):
+                                    sites[n_diff] = i
+                                n_diff += 1
                         # if there are exactly 2 differences, the differing
-                        # two molecules are those coupled; sites[k] contains
+                        # two molecules are those coupled; sites[n_diff] contains
                         # indiced those coupled molecules
-                        if k == 2:
+                        if n_diff == 2:
                             kk = sites[0]
                             ll = sites[1]
                             coup = self.resonance_coupling[kk, ll]
@@ -1663,17 +1663,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         els2 = es2.elsignature
                         Ns = len(els1)
                         sites = [0, 0]
-                        k = 0
+                        n_diff = 0
                         # count differences
                         for i in range(Ns):
                             if els1[i] != els2[i]:
-                                if (k == 0) or (k == 1):
-                                    sites[k] = i
-                                k += 1
+                                if (n_diff == 0) or (n_diff == 1):
+                                    sites[n_diff] = i
+                                n_diff += 1
                         # if there are exactly 2 differences, the differing
-                        # two molecules are those coupled; sites[k] contains
+                        # two molecules are those coupled; sites[n_diff] contains
                         # indiced those coupled molecules
-                        if k == 2:
+                        if n_diff == 2:
                             kk = sites[0]
                             ll = sites[1]
                             # print(kk,ll,els1,els2)
@@ -1702,17 +1702,17 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     els2 = es2.elsignature
                     Ns = len(els1)
                     sites = [0, 0]
-                    k = 0
+                    n_diff = 0
                     # count differences
                     for i in range(Ns):
                         if els1[i] != els2[i]:
-                            if (k == 0) or (k == 1):
-                                sites[k] = i
-                            k += 1
+                            if (n_diff == 0) or (n_diff == 1):
+                                sites[n_diff] = i
+                            n_diff += 1
                     # if there are exactly 2 differences, the differing
-                    # two molecules are those coupled; sites[k] contains
+                    # two molecules are those coupled; sites[n_diff] contains
                     # indiced those coupled molecules
-                    if k == 2:
+                    if n_diff == 2:
                         kk = sites[0]
                         ll = sites[1]
                         coup = self.resonance_coupling[kk, ll] * fc
@@ -1764,7 +1764,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         if mode not in ["LQ", "EQ"]:
             raise Exception("Unknown mode")
 
-        l = len(self.monomers)
+        n_sites = len(self.monomers)
 
         # list of maximum numbers of excitations on each sites
         if emax is None:
@@ -1788,25 +1788,25 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             # iterate over all excition multiplicities
             while mlt <= mult_int:
                 # no excitations (ground state)
-                out = [0 for k in range(l)]
+                out = [0 for k in range(n_sites)]
                 # if this is the multiplicity 0, yield the ground state
                 # if (((mlt == 0) and (mode == "LQ")) or (mult==0)):
                 # if band_n==0:
                 if ((band_n == 0) and (mode == "LQ")) or (mult == 0):
                     yield tuple(out)
                 else:
-                    k = 1
+                    excit_lvl = 1
                     # first we have only ground state signature
                     ins = [out]
                     strt = [0]
-                    while k <= mlt:
+                    while excit_lvl <= mlt:
                         nins = []
                         nstr = []
                         # take all signatures in "ins" and add one excitation
                         for out_added, last in self._add_excitation(ins, strt, omax):
                             # if mlt excitation was added yield
-                            if ((k == mlt) and (mode == "LQ")) or (
-                                (mult_int == k) and (mult_int == mlt)
+                            if ((excit_lvl == mlt) and (mode == "LQ")) or (
+                                (mult_int == excit_lvl) and (mult_int == mlt)
                             ):
                                 band = 0
                                 for ii in range(len(out_added)):
@@ -1822,25 +1822,25 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         # set the new signatures for processing in the iteration
                         ins = nins
                         strt = nstr
-                        k += 1
+                        excit_lvl += 1
                 mlt += 1
 
     def _add_excitation(
         self, inlists: list, strt: list, omax: list
     ) -> Iterator[tuple[Any, Any]]:
         """Adds one excitation to all submitted electronic signatures"""
-        k = 0
+        list_idx = 0
         # go through all signatures
         for inlist in inlists:
-            l = len(inlist)
-            if len(omax) != l:
+            n_pos = len(inlist)
+            if len(omax) != n_pos:
                 raise Exception(
                     "arg omax has to be a list of the same \
                 length as arg inlist"
                 )
             # go through all positions from the last index on (in order
             # to create unique signatures)
-            for i in range(strt[k], l):
+            for i in range(strt[list_idx], n_pos):
                 # if it is possible to add an excitation
                 # make a new list and add
                 if inlist[i] < omax[i]:
@@ -1848,7 +1848,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     out[i] += 1
                     # yield the list and the index of the last added exitation
                     yield out, i
-            k += 1
+            list_idx += 1
 
     def vibsignatures(self, elsignature: tuple, approx: str | None = None) -> Any:
         """Generator of vibrational signatures
@@ -2532,7 +2532,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                     # in two-exciton band
                     elif (self.which_band[i] == 2) and sbi_for_higher_ex and nnzr != 1:
-                        l = i - Nelg
+                        egcf_idx = i - Nelg
                         # monomers of a two-exciton state are obtaines
                         # FIXME: is this correct???
                         #                        j = self.elsigs[i][0]
@@ -2552,20 +2552,22 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         cfce = cfce1 + cfce2
                         # Two-exciton correlation function is set into
                         # EGCF matrix
-                        mapi = self.egcf_matrix.set_correlation_function(cfce, [(l, l)])
+                        mapi = self.egcf_matrix.set_correlation_function(
+                            cfce, [(egcf_idx, egcf_idx)]
+                        )
 
                         # FIXME: cross-correlation between double excitons
                         # needs to be handled.
-                        for k in range(self.Nel):
+                        for k2 in range(self.Nel):
                             # Index for the correlation functions (without the ground states)
-                            m = k - Nelg
+                            egcf_idx2 = k2 - Nelg
 
                             # find which monomer(s) is(are) excited
-                            elsig2 = self.elsigs[k]  # eletronic signature of state i
+                            elsig2 = self.elsigs[k2]  # eletronic signature of state i
                             nzr2 = numpy.nonzero(elsig2)[0]
                             nnzr2 = nzr2.size
 
-                            if self.which_band[k] == 1:
+                            if self.which_band[k2] == 1:
                                 # The cross correlation function will be the one with common index
 
                                 # which monomer excited
@@ -2573,24 +2575,27 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                 # to which state it is excited
                                 exct2 = elsig2[nzr2[0]]
 
-                                if k in self.twoex_indx[i]:
-                                    # print("Singlse:",l,m)
+                                if k2 in self.twoex_indx[i]:
                                     cfce = mon2.get_transition_environment((0, exct2))
                                     mapi = self.egcf_matrix.set_correlation_function(
-                                        cfce, [(l, m)]
+                                        cfce, [(egcf_idx, egcf_idx2)]
                                     )
                                     mapi = self.egcf_matrix.set_correlation_function(
-                                        cfce, [(m, l)]
+                                        cfce, [(egcf_idx2, egcf_idx)]
                                     )
 
-                            if (self.which_band[k] == 2) and (nnzr2 != 1) and (i != k):
+                            if (
+                                (self.which_band[k2] == 2)
+                                and (nnzr2 != 1)
+                                and (i != k2)
+                            ):
                                 mon21 = self.monomers[nzr2[0]]
                                 mon22 = self.monomers[nzr2[1]]
                                 exct21 = elsig2[nzr2[0]]
                                 exct22 = elsig2[nzr2[1]]
 
                                 elexcit1 = self.twoex_indx[i]
-                                elexcit2 = self.twoex_indx[k]
+                                elexcit2 = self.twoex_indx[k2]
 
                                 if (
                                     elexcit1[0] == elexcit2[0]
@@ -2598,25 +2603,21 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                 ):
                                     cfce = mon21.get_transition_environment((0, exct21))
                                     mapi = self.egcf_matrix.set_correlation_function(
-                                        cfce, [(l, m)]
+                                        cfce, [(egcf_idx, egcf_idx2)]
                                     )
-                                    # print("Double:",l,m,"mon:",nzr2[0],"0->",exct21,"|",cfce.data[0:10])
                                 elif (
                                     elexcit1[0] == elexcit2[1]
                                     or elexcit1[1] == elexcit2[1]
                                 ):
                                     cfce = mon22.get_transition_environment((0, exct22))
                                     mapi = self.egcf_matrix.set_correlation_function(
-                                        cfce, [(l, m)]
+                                        cfce, [(egcf_idx, egcf_idx2)]
                                     )
-                                    # print("Double:",l,m,"mon:",nzr2[1],"0->",exct22,"|",cfce.data[0:10])
-
-                                # print("Double:",l,m,"mon:",)
 
                                 # TODO:
                                 # Add else:
                                 #           cfce = 0
-                                #     mapi = self.egcf_matrix.set_correlation_function(cfce,[(l,m)])
+                                #     mapi = self.egcf_matrix.set_correlation_function(cfce,[(egcf_idx,egcf_idx2)])
 
                         if mapi <= 0:
                             raise Exception("Something's wrong")
@@ -3292,7 +3293,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             #  where K is a two-exc. state K = (k,l), A is a two-ex. state
             #  and n is a single exciton state
             #
-            #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l
+            #  Below aa1 = A, aa2 = n, aa3 = K, st_a = k and st_b = l
             #
             kappa: numpy.ndarray = numpy.zeros((self.Ntot, self.Ntot), dtype=REAL)
 
@@ -3312,13 +3313,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                                         for el3 in range(self.Nel):
                                             if self.which_band[el3] == 2:
                                                 for aa3 in self.vibindices[el3]:
-                                                    st_k = self.twoex_indx[aa3, 0]
-                                                    st_l = self.twoex_indx[aa3, 1]
+                                                    st_a = self.twoex_indx[aa3, 0]
+                                                    st_b = self.twoex_indx[aa3, 1]
 
-                                                    if st_l != 0:
+                                                    if st_b != 0:
                                                         kappa[aa2, aa1] += (
-                                                            delta[aa2, st_k]
-                                                            + delta[aa2, st_l]
+                                                            delta[aa2, st_a]
+                                                            + delta[aa2, st_b]
                                                         ) * (SS[aa3, aa1] ** 2)
                                                     else:
                                                         # (transitions on the single molecule (1,0)->(2,0)
@@ -3345,17 +3346,16 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                         self.Wd[aa_2x, alpha] = 0.0
                         for nn_2x in range(N1b, N2b):
                             for k_1x in range(N1b):
-                                st_n = self.twoex_indx[nn_2x, 0]
-                                st_m = self.twoex_indx[nn_2x, 1]
-                                # print(st_n, st_m)
-                                if st_m != 0:
-                                    # FIXME: I think here should be the indexes of the opposite state if st_n == k_1x then the width should be self.Wd[st_m, st_m]
+                                st_c = self.twoex_indx[nn_2x, 0]
+                                st_d = self.twoex_indx[nn_2x, 1]
+                                if st_d != 0:
+                                    # FIXME: I think here should be the indexes of the opposite state if st_c == k_1x then the width should be self.Wd[st_d, st_d]
                                     self.Wd[aa_2x, alpha] += (
                                         (
-                                            (self.Wd[st_n, st_n] ** 2)
-                                            * delta[st_n, k_1x]
-                                            + (self.Wd[st_m, st_m] ** 2)
-                                            * delta[st_m, k_1x]
+                                            (self.Wd[st_c, st_c] ** 2)
+                                            * delta[st_c, k_1x]
+                                            + (self.Wd[st_d, st_d] ** 2)
+                                            * delta[st_d, k_1x]
                                         )
                                         * (SS[nn_2x, aa_2x] ** 2)
                                         * (SS[k_1x, alpha] ** 2)
@@ -3383,18 +3383,18 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                 for aa in range(N1b, N2b):
                     for nn in range(N1b, N2b):
-                        st_n = self.twoex_indx[nn, 0]
-                        st_m = self.twoex_indx[nn, 1]
-                        if st_m != 0:
+                        st_c = self.twoex_indx[nn, 0]
+                        st_d = self.twoex_indx[nn, 1]
+                        if st_d != 0:
                             Wd_a[aa] += (SS[nn, aa] ** 2) * (
-                                (self.Wd[st_n, st_n] ** 2) * kappa[st_n, aa]
-                                + (self.Wd[st_m, st_m] ** 2) * kappa[st_m, aa]
+                                (self.Wd[st_c, st_c] ** 2) * kappa[st_c, aa]
+                                + (self.Wd[st_d, st_d] ** 2) * kappa[st_d, aa]
                             )
                         else:
                             Wd_a[aa] += (
                                 (SS[nn, aa] ** 2)
-                                * (Wd_tmp[aa, st_n] ** 2)
-                                * kappa[st_n, aa]
+                                * (Wd_tmp[aa, st_c] ** 2)
+                                * kappa[st_c, aa]
                             )
 
                 W_aux = numpy.diag(numpy.sqrt(Wd_a))
@@ -3539,21 +3539,23 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                             for mm in range(Nel):
                                 vind = self.vibindices[mm]
                                 mmi = vind[0]
-                                k = self.twoex_indx[mmi, 0]
-                                l = self.twoex_indx[mmi, 1]
+                                st_a = self.twoex_indx[mmi, 0]
+                                st_b = self.twoex_indx[mmi, 1]
 
                                 Wd_c[aa, bb] += (
                                     (
-                                        (Wd_in[n] ** 2) * (delta[n, k] + delta[n, l])
-                                        + (Wd_in[m] ** 2) * (delta[m, k] + delta[m, l])
+                                        (Wd_in[n] ** 2)
+                                        * (delta[n, st_a] + delta[n, st_b])
+                                        + (Wd_in[m] ** 2)
+                                        * (delta[m, st_a] + delta[m, st_b])
                                     )
                                     * kap2[aa, nn]
                                     * kap2[bb, mm]
                                 )
 
                 W_cc: numpy.ndarray = numpy.zeros(Wd_c.shape[0], dtype=REAL)
-                for k in range(N2b):
-                    W_cc[k] = Wd_c[k, k]
+                for diag_idx in range(N2b):
+                    W_cc[diag_idx] = Wd_c[diag_idx, diag_idx]
                 W_aux = numpy.diag(numpy.sqrt(W_cc))
                 # W_aux = numpy.diag(numpy.sqrt(Wd_b))
 
