@@ -1,9 +1,4 @@
-import unittest
-
-import numpy
-
-"""
-*******************************************************************************
+"""*******************************************************************************
 
 
     Tests of the quantarhei.Manager class
@@ -11,6 +6,10 @@ import numpy
 
 *******************************************************************************
 """
+
+import unittest
+
+import numpy
 
 from quantarhei import Manager, energy_units, set_current_units
 
