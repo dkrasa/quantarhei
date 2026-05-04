@@ -8,7 +8,7 @@
 
 Quantarhei is a molecular open quantum systems simulator written in Python. Its name is derived from the aphorism *"Panta rhei"* of Heraclitus of Ephesus — "Everything flows" — fitting for a package centred on quantum dynamics.
 
-It provides tools for building molecular aggregates, computing absorption spectra, and simulating excitation energy transfer using Redfield and Förster theories.
+It provides tools for building molecular aggregates, computing linear and non-linear spectra, and simulating excitation energy transfer and open quantum system dynamics.
 
 ---
 
@@ -72,11 +72,13 @@ More examples are in the [`docs/examples/`](docs/examples/) directory and on [Re
 
 ## Features
 
-- **Molecular aggregates** — build multi-molecule systems with arbitrary couplings, vibrational modes, and system-bath interactions
-- **Absorption spectra** — linear absorption for monomers and aggregates
-- **2D spectroscopy** — two-dimensional electronic spectra with Liouville pathway analysis
-- **Energy transfer** — Redfield, modified Redfield, and Förster rate theories; time-dependent variants
-- **Open quantum systems** — Lindblad and Redfield master equations, density matrix propagation
+- **Molecular aggregates** — multi-molecule systems with arbitrary couplings, vibrational modes (Huang-Rhys factors, intra-molecular modes), vibronic coupling, and system-bath interactions
+- **Linear spectroscopy** — absorption, circular dichroism, linear dichroism, and fluorescence spectra for monomers and aggregates
+- **2D electronic spectroscopy** — non-linear response with Liouville pathway analysis, Feynman diagrams, and pump-probe spectra
+- **Energy transfer theories** — Redfield, modified Redfield, and Förster rate theories; time-dependent and non-equilibrium variants; mixed Redfield-Förster
+- **Open quantum system dynamics** — Lindblad and Redfield master equations, density matrix propagation, hierarchical equations of motion (HEOM)
+- **Bath modeling** — correlation functions, spectral densities, lineshape functions; pre-built models for photosynthetic pigments
+- **Laboratory frame** — realistic optical geometries and pulse field configurations via `LabSetup`
 - **Extensible** — pure Python reference implementation; performance-critical routines can be replaced with optimised C/Fortran extensions
 
 ---
