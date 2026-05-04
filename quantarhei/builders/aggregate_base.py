@@ -1,4 +1,15 @@
-"""Class representing aggregates of molecules."""
+"""Class representing aggregates of molecules.
+
+The class enables building of complicated objects from objects of the Molecule
+type, their mutual interactions and system-bath interactions. It also provides
+an interface to various methods of open quantum systems theory.
+
+Known limitations:
+ - Only ground to excited state transition widths and dephasing (no 1->2 band)
+ - No energy gap correlation function for the 1->2 band transitions
+ - Transformation of transition widths for multilevel molecules unverified
+
+"""
 
 from __future__ import annotations
 
