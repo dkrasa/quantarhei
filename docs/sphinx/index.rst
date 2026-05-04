@@ -72,14 +72,14 @@ Dive into |Qrhei|_ documentation below:
 .. toctree::
    :maxdepth: 2
 
-   getstarted
-   installation
-   examples
-   classes
-   advclasses
-   mngrclasses
-   internals
-   contribute
+   Get started <getstarted>
+   Installation <installation>
+   Examples <examples>
+   User Classes <classes>
+   Advanced <advclasses>
+   Managers <mngrclasses>
+   Internals <internals>
+   Contributing <contribute>
 
 
 Parts of Documentation Considered Complete
@@ -87,8 +87,8 @@ Parts of Documentation Considered Complete
 
 .. toctree::
    :maxdepth: 1
-   
-   classes/fulldoc
+
+   Full Docs <classes/fulldoc>
 
 
 Indices and tables
