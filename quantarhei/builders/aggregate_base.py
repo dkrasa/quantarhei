@@ -40,11 +40,7 @@ from ..qm.propagators.dmevolution import (
     ReducedDensityMatrixEvolution,
 )
 from ..qm.propagators.statevectorevolution import StateVectorEvolution
-
-# from .aggregate_states import aggregate_state
 from .aggregate_states import ElectronicState, VibronicState
-
-# from ..core.units import cm2int
 from .interactions import dipole_dipole_interaction
 from .opensystem import OpenSystem
 
@@ -722,33 +718,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     # Vibrational modes
     #
-    def add_Mode_by_name(self, name: str, mode: object) -> None:
-        try:
-            im = self.mnames[name]
-            mn = self.monomers[im]
-            mn.add_mode(mode)
-        except (KeyError, IndexError):
-            raise Exception()
-
-    def get_Mode_by_name(self, name: str, N: int) -> object:
-        try:
-            im = self.mnames[name]
-            mn = self.monomers[im]
-            return mn.get_mode(N)
-        except (KeyError, IndexError):
-            raise Exception("Mode not found")
-
     #
     # Transition dipole
     #
-    def get_dipole_by_name(self, name: str, N: int, M: int) -> numpy.ndarray:
-        try:
-            im = self.mnames[name]
-            mn = self.monomers[im]
-            return mn.get_dipole(N, M)
-        except (KeyError, IndexError):
-            raise Exception()
-
     def get_dipole(
         self, n: Any, N: Any = None, M: Any = None, **kwargs: Any
     ) -> numpy.ndarray:
@@ -776,15 +748,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         for nm in self.monomers:
             omax.append(nm.nel - 1)
         return omax
-
-    def get_energy_by_name(self, name: str, N: int) -> float:
-        """Electronic energy"""
-        try:
-            im = self.mnames[name]
-            mn = self.monomers[im]
-            return mn.get_energy(N)
-        except (KeyError, IndexError):
-            raise Exception()
 
     def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
         """Sets the dipole moment of a given transition"""
@@ -1176,10 +1139,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         st2 = state2.elstate.elsignature[exindx]
 
         magdip = self.get_magnetic_dipole(exindx, st1, st2)
-        #        if st1<st2:
-        #            magdip = self.get_magnetic_dipole(exindx, st1, st2)
-        #        else:
-        #            magdip = self.get_magnetic_dipole(exindx, st2, st1)
 
         # Franck-Condon factor between the two states
         fcfac = self.fc_factor(state1, state2)
@@ -1255,14 +1214,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # get electronic signatures
         els1 = state1.elstate.elsignature
         els2 = state2.elstate.elsignature
-
-        # only states in neighboring bands can be connected by dipole moment: not true, also 0-2 can be. We can have 0-2 and  1-2 transitions
-        # ----- This doesn't support multiple states within single band in one molecule
-        #        b1 = state1.elstate.band
-        #        b2 = state2.elstate.band
-        #        if (abs(b1-b2) != 1) and (abs(b1-b2) != 2):
-        #            return -1
-        # -----------------------------------------------------------------
 
         # count the number of differences
         sig_idx = 0
@@ -3939,23 +3890,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         """
         return tuple(range(self.Nb[0]))
 
-    # def get_band(self, band=1):
-    #     """Indices of states in a given excitonic band.
-
-    #      This is an implementation of a method from OpenSystem class
-
-    #      Returns indices of all states in the excitonic band
-    #      with number of excitons equal to `band`
-
-    #      Parameters
-    #      ----------
-
-    #      band : int
-    #          Specifies which band should be returned.
-
-    #     """
-    #     return self.get_excitonic_band(band=band)
-
     def get_excitonic_band(self, band: int = 1) -> tuple:
         """Indices of states in a given excitonic band.
 
@@ -3970,14 +3904,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         """
         return self.get_band(band=band)
-
-    #     Nbefore = 0
-    #     for ii in range(band):
-    #         Nbefore += self.Nb[ii]
-    #     Nin = self.Nb[band]
-    #     lst = [k for k in range(Nbefore, Nbefore+Nin)]
-
-    #     return tuple(lst)
 
     def get_transition(self, Nf: Any, Ni: Any) -> tuple:
         """Returns relevant info about the energetic transition
