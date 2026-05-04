@@ -6,4 +6,4 @@ dill
 pyyaml
 sympy
 numpydoc
-
+quantarhei
