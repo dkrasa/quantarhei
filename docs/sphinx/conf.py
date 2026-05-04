@@ -64,11 +64,13 @@ numpydoc_class_members_toctree = False
 
 # -- HTML output ---------------------------------------------------------------
 
-html_theme = "furo"
+html_theme = "pydata_sphinx_theme"
 html_title = f"Quantarhei {release}"
 html_static_path = ["_static"]
 html_theme_options = {
     "navigation_with_keys": True,
+    "show_nav_level": 2,
+    "show_toc_level": 2,
 }
 
 # -- LaTeX output --------------------------------------------------------------
