@@ -596,16 +596,16 @@ class Manager(metaclass=Singleton):
 
         # special handling for nano meters
         if units == "nm":
-            # zero is interpretted as zero energy
+            # zero is interpreted as zero energy; use tiny threshold to guard
+            # against subnormals that would overflow 1/val to inf
+            tiny = numpy.finfo(float).tiny
             try:
+                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
                 ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[val != 0.0] = 1.0 / val[val != 0]  # type: ignore[index]
+                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
                 return ret / cfact
-            except AttributeError:
-                return (1.0 / val) / cfact
-            # if val == 0.0:
-            #    return 0.0
-            # return (1.0/val)/cfact
+            except (AttributeError, TypeError):
+                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
         else:
             return val * cfact
 
@@ -625,13 +625,16 @@ class Manager(metaclass=Singleton):
 
         # special handling for nanometers
         if units == "nm":
-            # zero is interpretted as zero energy
+            # zero is interpreted as zero energy; use tiny threshold to guard
+            # against subnormals that would overflow 1/val to inf
+            tiny = numpy.finfo(float).tiny
             try:
+                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
                 ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[val != 0.0] = 1.0 / val[val != 0]  # type: ignore[index]
+                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
                 return ret / cfact
-            except AttributeError:
-                return (1.0 / val) / cfact
+            except (AttributeError, TypeError):
+                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
         else:
             return val / cfact
 
