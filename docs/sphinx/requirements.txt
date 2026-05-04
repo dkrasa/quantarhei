@@ -6,4 +6,6 @@ dill
 pyyaml
 sympy
 numpydoc
+furo
+sphinx
 quantarhei
