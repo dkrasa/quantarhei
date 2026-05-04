@@ -1,21 +1,4 @@
-"""Class representing aggregates of molecules.
-
-The class enables building of complicated objects from objects of the Molecule
-type, their mutual interactions and system-bath interactions. It also provides
-an interface to various methods of open quantum systems theory.
-
-
-Issues:
- - Only ground to excited state transition widths and dephasing ( no 1->2 band transition widths)
-
- - No energy gap correlation function for the 1->2 band transitions (only ground to excited ones)
-    * Coft is for the state and not transition for the 1->2 transition on single molecule the cofts
-      has to be properly subtracted
-
- - Transformation of the transition width for multilevel molecules (check), transform the same
-   for the vibronic agregate for the multilevel molecule
-
-"""
+"""Class representing aggregates of molecules."""
 
 from __future__ import annotations
 
@@ -528,28 +511,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         else:
             print(text_warning)
 
-    ######################## Previous version of T.Mancal  #################################### @Vladislav Slama
-    #            self.init_coupling_matrix()
-    #
-    #        coup = self.convert_energy_2_internal_u(coupling)
-    #
-    #        self.resonance_coupling[i,j] = coup
-    #        self.resonance_coupling[j,i] = coup
-    #        #
-    #        # TESTED
-    #
-    ######################## My new part end  #################################### @Vladislav Slama
-
     def get_resonance_coupling(self, i: int, j: int) -> float | numpy.ndarray:
         """Returns resonance coupling value between two sites"""
-        #
-        # Replaced to use the new implementation of coupling storage
-        #
         return self.get_resonance_coupling_vec(i, 0, 1, j, 1, 0)
-        # coupling = self.resonance_coupling[i,j]
-        # return self.convert_energy_2_current_u(coupling)
-        #
-        # TESTED
 
     def set_resonance_coupling_matrix(
         self, coupmat: numpy.ndarray | list | tuple
@@ -641,26 +605,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self, epsr: float = 1.0, delta: float = 1.0e-5
     ) -> None:
         """Sets resonance coupling by dipole-dipole interaction"""
-        ######################## My new part beginning #################################### @Vladislav Slama
-
         self.set_coupling_by_dipole_dipole_vec(epsr=epsr)
-
-    ######################## Previous version of T.Mancal  #################################### @Vladislav Slama
-    #        if not self.coupling_initiated:
-    #            self.init_coupling_matrix()
-    #        for kk in range(self.nmono):
-    #            for ll in range(kk+1,self.nmono):
-    #                try:
-    #                    cc = self.dipole_dipole_coupling(kk,ll,epsr=epsr,
-    #                                                    delta=delta)
-    #                except:
-    #                    cc = 0.0
-    #                c1 = self.convert_energy_2_internal_u(cc)
-    #                self.resonance_coupling[kk,ll] = c1
-    #                self.resonance_coupling[ll,kk] = c1
-    ######################## My new part end #################################### @Vladislav Slama
-    #
-    # TESTED
 
     def calculate_resonance_coupling(
         self, method: str = "dipole-dipole", params: dict | None = None
@@ -878,14 +823,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             if not self.FC.lookup(shft):
                 fc = self.ops.shift_operator(shft)[:20, :20]
 
-                # correction for the second state
-                if False:
-                    n2 = numpy.abs(fc[0, 0]) ** 2 + numpy.abs(fc[0, 1]) ** 2
-                    fc[0, 0] = fc[0, 0] / numpy.sqrt(n2)
-                    fc[1, 1] = fc[0, 0]
-                    fc[0, 1] = fc[0, 1] / numpy.sqrt(n2)
-                    fc[1, 0] = -fc[0, 1]
-
                 self.FC.add(shft, fc)
 
             ii = self.FC.index(shft)
@@ -894,12 +831,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             res = res * rs
 
-        ######################## My new part beginning #################################### @Vladislav Slama
         return numpy.real(res)
-
-    ######################## Previous version of T.Mancal #################################### @Vladislav Slama
-    #        return res
-    ######################## My new part end #################################### @Vladislav Slama
 
     def map_egcf_to_states(self, mpx: numpy.ndarray) -> numpy.ndarray:
         """Maps the participation matrix on g(t) functions storage
@@ -1187,12 +1119,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             eldip = self.get_dipole(exindx, st1, st2)
         else:
             eldip = self.get_dipole(exindx, st2, st1)
-
-        ######################## Previous version of T.Mancal #################################### @Vladislav Slama
-        #
-        #        eldip = self.get_dipole(exindx, 0, 1)
-        #
-        ######################## My new part end #################################### @Vladislav Slama
 
         # Franck-Condon factor between the two states
         fcfac = self.fc_factor(state1, state2)
@@ -1789,95 +1715,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
     #
     #######################################################################
 
-    def elsignatures_old(
-        self, mult: int = 1, mode: str = "LQ", emax: list | None = None
-    ) -> Iterator[tuple[Any, ...]]:
-        """Generator of electronic signatures
-
-        Here we create signature tuples of electronic states. The signature
-        is a tuple with as many integer numbers as the members of
-        the aggregate. Each integer represents the state in which the
-        member of the aggregate is, e.g. 0 for ground state, 1 for the first
-        excited state etc.
-
-
-        Parameters
-        ----------
-        mult : int
-            multiplicity of excitons
-
-        mode : str {"LQ", "EQ"}
-            mode of the functions.
-
-            mode="LQ" returns all signatures of states with
-            multiplicity less than or equal to the `mult`
-
-            mode="EQ" returns signatures of states with a multiplicity
-            given by `mult`
-
-        """
-        if mode not in ["LQ", "EQ"]:
-            raise Exception("Unknown mode")
-
-        l = len(self.monomers)
-
-        # list of maximum numbers of excitations on each sites
-        if emax is None:
-            omax = self.get_max_excitations()
-        else:
-            omax = emax
-
-        if mult < 0:
-            raise Exception("mult must be larger than or equal to zero")
-
-        # define internal multiplicity which is dependent on the monomers
-        mult_int = mult
-        for mon in self.monomers:
-            Nexct = (
-                numpy.sum(mon.Nb[: mult + 1]) - (mon.Nb[: mult + 1]).size
-            )  # Count extra states in the bands
-            mult_int += Nexct
-
-        mlt = 0
-        # iterate over all excition multiplicities
-        while mlt <= mult_int:
-            # no excitations (ground state)
-            out = [0 for k in range(l)]
-            # if this is the multiplicity 0, yield the ground state
-            if ((mlt == 0) and (mode == "LQ")) or (mult == 0):
-                yield tuple(out)
-            else:
-                k = 1
-                # first we have only ground state signature
-                ins = [out]
-                strt = [0]
-                while k <= mlt:
-                    nins = []
-                    nstr = []
-                    # take all signatures in "ins" and add one excitation
-                    for out_added, last in self._add_excitation(ins, strt, omax):
-                        print("k:", k, "mlt:", mlt, mult_int, mult, out_added, last)
-                        # if mlt excitation was added yield
-                        if ((k == mlt) and (mode == "LQ")) or (
-                            (mult_int == k) and (mult_int == mlt)
-                        ):
-                            band = 0
-                            for ii in range(len(out_added)):
-                                band += self.monomers[ii].which_band[out_added[ii]]
-                            if band <= mult:
-                                yield tuple(out_added)
-                        else:
-                            # make a list of all new signatures
-                            nins.append(out_added)
-                            # for each signature, save the index
-                            # on which an excitation was added last
-                            nstr.append(last)
-                    # set the new signatures for processing in the iteration
-                    ins = nins
-                    strt = nstr
-                    k += 1
-            mlt += 1
-
     def elsignatures(
         self, mult: int = 1, mode: str = "LQ", emax: list | None = None
     ) -> Iterator[tuple[Any, ...]]:
@@ -2151,55 +1988,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     else:
                         self.which_band[ist] = numpy.sum(ess1)
 
-                # ist += 1 # count electronic states
-
-    ######################## Previous version of T.Mancal #################################### @Vladislav Slama
-    #
-    #        # run over all electronic signatures
-    #        for ess1 in self.elsignatures(mult=mult, mode=mode):
-    #
-    #            # generate electronic state
-    #            es1 = self.get_ElectronicState(ess1, ist)
-    #
-    #            # loop over all vibrational signatures in electronic states
-    #            nsig = 0
-    #            for vsig1 in es1.vsignatures(approx=vibgen_approx, N=Nvib,
-    #                                         vibenergy_cutoff=vibenergy_cutoff):
-    #
-    #                # create vibronic state with a given signature
-    #                s1 = VibronicState(es1, vsig1)
-    #
-    #                if save_indices:
-    #                    # save indices corresponding to vibrational sublevels
-    #                    # of a given electronic state
-    #                    self.vibindices[ist].append(ast)
-    #                    self.vibsigs[ast] = (ess1, vsig1)
-    #                    self.elinds[ast] = ist
-    #
-    #                yield ast ,s1
-    #
-    #                ast += 1 # count all states
-    #                nsig += 1 # count the number of vibrational signatures
-    #
-    #            # if no vibrational signatures
-    #            if nsig == 0:
-    #                # if True return vibronic states even
-    #                # for purely electronic state
-    #                if all_vibronic:
-    #                    s1 = VibronicState(es1, None)
-    #                else:
-    #                    s1 = es1
-    #
-    #            if save_indices:
-    #                # save electronic signatures to be searchable later
-    #                self.elsigs[ist] = ess1
-    #                # save the band to which this electronic index corresponds
-    #                self.which_band[ist] = numpy.sum(ess1)
-    #
-    #            ist += 1 # count electronic states
-    #
-    ######################## My new part end #################################### @Vladislav Slama
-
     def elstates(
         self, mult: int = 1, mode: str = "LQ", save_indices: bool = False
     ) -> Generator[tuple[int, Any], None, None]:
@@ -2425,10 +2213,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
             # get dephasing and width from the ground-state
 
-            ######################## Previous version of T.Mancal #################################### @Vladislav Slama
-            #            HH[a,a] = s1.energy()
-            ######################## My new part end #################################### @Vladislav Slama
-
             # for each excited state
             elind = self.elinds[a]
             if (self.which_band[elind] == 1) or (self.which_band[elind] == 2):
@@ -2521,8 +2305,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     pass
 
                 if a != b:
-                    # HH[a,b] = numpy.real(self.coupling(s1, s2))
-                    # HH[a,b] = self.coupling(s1, s2)
                     HH[a, b] = self.coupling_vec(s1, s2)
         # TODO: ADD FULL Frenkel exciton model
         # HH[a,b] = numpy.real(self.coupling(s1, s2, full=fem_full))
@@ -2582,10 +2364,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         self.twoex_indx = twoex_indx
 
         # squares of transition dipoles
-        dd2 = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
-        for a in range(Ntot):
-            for b in range(Ntot):
-                dd2[a, b] = numpy.dot(self.DD[a, b, :], self.DD[a, b, :])
+        dd2 = numpy.sum(self.DD**2, axis=2)
         self.D2 = dd2
         # FIXME: do I need this??? Is it even corrrect??? (maybe amax?)
         # maximum of transition dipole moment elements
@@ -3219,13 +2998,8 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     stg = self.get_VibronicState(vs_g[0], vs_g[1])
                     stgs.append(stg)
 
-                FcProd = numpy.zeros_like(self.FCf)
-                # self.FCf[1,3] = self.FCf[0,2]
-                # self.FCf[3,1] = self.FCf[2,0]
-                for i in range(FcProd.shape[0]):
-                    for j in range(FcProd.shape[1]):
-                        for i_g in range(self.Nb[0]):
-                            FcProd[i, j] += self.FCf[i_g, i] * self.FCf[j, i_g]
+                Ng = self.Nb[0]
+                FcProd = numpy.einsum("gi,jg->ij", self.FCf[:Ng, :], self.FCf[:, :Ng])
 
                 # print(self.FCf)
                 # print(self.FCf.shape)
@@ -3483,125 +3257,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         # Kronecker delta over all states
         delta = operator_factory(self.Ntot).unity_operator()
 
-        # have_vibs = True
-
-        # <<<<<<< HEAD
-        #        if not have_vibs:
-        #            ######################################################################
-        #            #  CASE OF NO VIBRATIONAL MODES
-        #            ######################################################################
-        #
-        #            #
-        #            # some quantities to be precalculated for two-ex lineshape
-        #            # 1->2 has to be trasformed first because we need untransformed 0->1
-        #            # for such a transformation
-        #            #
-        #            N1b = self.Nb[0]+self.Nb[1]
-        #
-        #
-        #            #  \kappa_{nA} =
-        #            #  \sum_{K}(\delta_{nk}+\delta_{nl})*|\langle A | K\rangle|^2
-        #            #
-        #            #  where K is a two-exc. state K = (k,l), A is a two-ex. state
-        #            #  and n is a single exciton state
-        #            #
-        #            #  Below aa1 = A, aa2 = n, aa3 = K, st_k = k and st_l = l
-        #            #
-        #            kappa = numpy.zeros((self.Ntot, self.Ntot), dtype=qr.REAL)
-
-        # if self.mult >= 2:
-
-        # Wd_tmp = self.Wd.copy()
-        # WW = numpy.zeros(self.Wd.shape,dtype=qr.REAL)
-
-        # N2b = self.Nb[0]+self.Nb[1]+self.Nb[2]
-
-        ##            # all states (and 2-ex band selected)
-        ##            for kk1 in range(self.Nel):
-        ##                el1 = self.elinds[kk1]
-        ##                if self.which_band[el1] == 2:
-        ##                    # all states corresponding to electronic two-exc. state kk
-        ##                    for aa1 in self.vibindices[kk1]:
-        ##
-        ##                        # all states and (1-ex band selected)
-        ##                        for kk2 in range(self.Nel):
-        ##                            el2 = self.elinds[kk2]
-        ##                            if self.which_band[el2] == 1:
-        ##                                for aa2 in self.vibindices[kk2]:
-        ##
-        ##                                    # all states and (2-ex band selected)
-        ##                                    for kk3 in range(self.Nel):
-        ##                                        el3 = self.elinds[kk3]
-        ##                                        if self.which_band[el3] == 2:
-        ##                                            for aa3 in self.vibindices[kk3]:
-        ##                                                st_k = self.twoex_indx[aa3,0]
-        ##                                                st_l = self.twoex_indx[aa3,1]
-        ##                                                kappa[aa2, aa1] += (
-        ##                                                     (delta[aa2, st_k]
-        ##                                                    + delta[aa2, st_l])*
-        ##                                                     (SS[aa3, aa1]**2))
-        ##                                                print(aa2,aa1,kappa[aa2, aa1],self.elsigs[aa1],self.elsigs[aa2],self.elsigs[aa3])
-
-        ##
-        ## Cross terms
-        ##
-        # for aa_2x in range(N1b, N2b):
-        # for alpha in range(N1b):
-        # self.Wd[aa_2x, alpha] = 0.0
-        # for nn_2x in range(N1b, N2b):
-        # for k_1x in range(N1b):
-        # st_n = self.twoex_indx[nn_2x, 0]
-        # st_m = self.twoex_indx[nn_2x, 1]
-        # elsig_1x = self.vibsigs[k_1x][0]
-        # elsig_2x = self.vibsigs[nn_2x][0]
-        ##                            print(elsig_1x,elsig_2x,self.twoex_indx[nn_2x])
-        # if st_m != 0:
-        # self.Wd[aa_2x, alpha] += \
-        # (Wd_tmp[k_1x, k_1x]**2)*\
-        # (delta[elsig_1x[st_n-1], elsig_2x[st_n-1]] +
-        # delta[elsig_1x[st_m-1], elsig_2x[st_m-1]])*\
-        # (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)
-        ##                                  ((Wd_tmp[st_n, st_n]**2)*delta[st_n, k_1x] +
-        ##                                   (Wd_tmp[st_m, st_m]**2)*delta[st_m, k_1x])*\
-        # else:
-        # self.Wd[aa_2x, alpha] += \
-        # Wd_tmp[nn_2x,k_1x]**2 *\
-        # (SS[nn_2x, aa_2x]**2)*(SS[k_1x, alpha]**2)
-
-        # self.Wd[N1b:N2b,0:N1b] = numpy.sqrt(self.Wd[N1b:N2b,0:N1b])
-        # self.Wd[0:N1b,N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b,0:N1b])
-        ##print(self.Wd[N1b:N2b,0:N1b])
-
-        ## all states (and 2-ex band selected)
-        # for kk1_2x in range(N1b, N2b):
-        # elsig1 = self.vibsigs[kk1_2x][0]
-        # for kk2_2x in range(N1b, N2b):
-        # elsig2 = self.vibsigs[kk2_2x][0]
-        # for nn in range(self.nmono):
-        # if (elsig1[nn] == 0) or (elsig2[nn] == 0):
-        # continue
-        # elif (elsig1[nn] == elsig2[nn]):
-        # width = self.monomers[nn].get_transition_width((0,elsig1[nn]))
-        ## Wd is numpy.sqrt(width)
-        # else:
-        # width = self.monomers[nn].get_transition_width((elsig1[nn],elsig2[nn]))
-
-        # WW[kk1_2x, kk2_2x] += width
-
-        ## Do not transform lineshapes for 1->2 on single molecule
-        # Wd_a = numpy.zeros(N2b, dtype=qr.REAL)
-        # Dr_a = numpy.zeros(N2b, dtype=qr.REAL)
-        ##            print("Transform:",self.Wd)
-        # for aa in range(N1b, N2b):
-        # for nn in range(N1b, N2b):
-        # for mm in range(N1b, N2b):
-        # Wd_a[aa] += (SS[nn, aa]**2)*(SS[mm, aa]**2)*WW[nn, mm]
-        # W_aux = numpy.diag(numpy.sqrt(Wd_a))
-        # self.Wd[N1b:N2b,N1b:N2b] = W_aux[N1b:N2b,N1b:N2b]
-        ##            print("Between:",self.Wd)
-
-        ##
-        # =======
         if not have_vibs:
             ######################################################################
             #  CASE OF NO VIBRATIONAL MODES
@@ -3732,15 +3387,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             #
             # Transform line shapes for 0->1 transitions
             #
-            Wd_a = numpy.zeros(N1b, dtype=REAL)
-            Dr_a = numpy.zeros(N1b, dtype=REAL)
-
-            for ii in range(N1b):
-                for nn in range(N1b):
-                    Wd_a[ii] += (self.Wd[nn, nn] ** 2) * abs(SS[ii, nn]) ** 4
-                    Dr_a[ii] += (self.Dr[nn, nn] ** 2) * abs(SS[ii, nn]) ** 4
-            Wd_a = numpy.sqrt(Wd_a)
-            Dr_a = numpy.sqrt(Dr_a)
+            SS4 = numpy.abs(SS[:N1b, :N1b]) ** 4
+            Wd_a = numpy.sqrt(
+                numpy.einsum("in,n->i", SS4, numpy.diag(self.Wd[:N1b, :N1b]) ** 2)
+            )
+            Dr_a = numpy.sqrt(
+                numpy.einsum("in,n->i", SS4, numpy.diag(self.Dr[:N1b, :N1b]) ** 2)
+            )
 
             self.Wd[0:N1b, 0:N1b] = numpy.diag(Wd_a)
             self.Dr[0:N1b, 0:N1b] = numpy.diag(Dr_a)
@@ -3798,18 +3451,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # loop over electronic states in the 1-ex band
                     st = 0  # counts the total index of the state
                     for ii in range(Nel):
-                        # if self.which_band[ii] == 1:
-                        if True:
-                            # loop over substructure of vib states
-                            for ialph in self.vibindices[
-                                ii
-                            ]:  # for aa1 in self.vibindices[el1]:
-                                # print(aa, st, "(", ii, ialph,")")
-                                kap[aa, ii] += numpy.abs(SS[st, aa]) ** 2
-                                st += 1
-                        # else:
-                        #    for ialph in self.vibindices[ii]:
-                        #        st += 1
+                        for ialph in self.vibindices[ii]:
+                            kap[aa, ii] += numpy.abs(SS[st, aa]) ** 2
+                            st += 1
 
             # loop over all states in the 1-ex band
 
@@ -3845,20 +3489,11 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 kap2 = numpy.zeros((N2b, Nel), dtype=REAL)
                 # loop over all states in the 1-ex band
                 for aa in range(N2b):
-                    ela = self.elinds[aa]
-                    # if self.which_band[ela] == 1:
-                    if True:
-                        # loop over electronic states in the 1-ex band
-                        st = 0  # counts the total index of the state
-                        for ii in range(Nel):
-                            # if self.which_band[ii] == 1:
-                            # print("el. state: ", ii)
-                            if True:
-                                # loop over substructure of vib states
-                                for ialph in self.vibindices[ii]:
-                                    # print(aa, st, "(", ii, ialph,")")
-                                    kap2[aa, ii] += numpy.abs(SS[st, aa]) ** 2
-                                    st += 1
+                    st = 0
+                    for ii in range(Nel):
+                        for ialph in self.vibindices[ii]:
+                            kap2[aa, ii] += numpy.abs(SS[st, aa]) ** 2
+                            st += 1
 
                 for aa in range(N1b):
                     for nn in range(Nel):
@@ -3938,8 +3573,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 self.Wd[N1b:N2b, 0:N1b] = W_aux[N1b:N2b, 0:N1b]
                 self.Wd[0:N1b, N1b:N2b] = numpy.transpose(self.Wd[N1b:N2b, 0:N1b])
 
-        # >>>>>>> 54a40cc55cdedf86bf04a5d705227fe69461d408
-
         #
         #
         # Coefficients xi_{ai} to transform pure dephasing of electronic coherence
@@ -3960,10 +3593,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             self.DD[:, :, n] = numpy.dot(self.S1, numpy.dot(self.DD[:, :, n], self.SS))
 
         Ntot = self.HH.shape[0]
-        dd2 = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
-        for a in range(Ntot):
-            for b in range(Ntot):
-                dd2[a, b] = numpy.dot(self.DD[a, b, :], self.DD[a, b, :])
+        dd2 = numpy.sum(self.DD**2, axis=2)
 
         self.D2 = dd2
         self.D2_max = numpy.max(dd2)
@@ -4345,10 +3975,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         ground state of the system.
 
         """
-        Ng = self.Nb[0]
-        lst = [k for k in range(Ng)]
-
-        return tuple(lst)
+        return tuple(range(self.Nb[0]))
 
     # def get_band(self, band=1):
     #     """Indices of states in a given excitonic band.
