@@ -413,7 +413,7 @@ class liouville_pathway(UnitsManaged):
             self.F4n[1] = numpy.dot(d[3, :], d[1, :]) * numpy.dot(d[2, :], d[0, :])
             self.F4n[2] = numpy.dot(d[3, :], d[0, :]) * numpy.dot(d[2, :], d[1, :])
 
-            self.sign = numpy.prod(self.sides)
+            self.sign = float(numpy.prod(self.sides))
 
         elif self.order == 1:
             self.or_av_1 = (1.0 / 3.0) * numpy.dot(d[0, :], d[1, :])
